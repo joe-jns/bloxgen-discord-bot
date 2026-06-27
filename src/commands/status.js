@@ -23,13 +23,12 @@ export default {
       .setTitle('📡 BloxGen status')
       .setColor(allUp ? COLORS.success : COLORS.error)
       .addFields(
-        { name: 'API', value: apiOk ? '🟢 Online' : '🔴 Offline', inline: true },
+        { name: 'API', value: apiOk ? '🟢 Online' : '🔴 Offline' },
         {
           name: 'Social Growth',
           value: !sgKnown ? '⚪ Unknown' : sgOk ? '🟢 Online' : '🔴 Offline',
-          inline: true,
         },
-        { name: 'Balance', value: `💰 ${bal}`, inline: true },
+        { name: 'Balance', value: `💰 ${bal}` },
       )
       .setTimestamp();
 
