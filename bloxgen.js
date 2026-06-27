@@ -8,11 +8,14 @@ const API_KEY = process.env.BLOXGEN_API_KEY;
 export const ACCOUNT_TYPES = ['alt', '+30 days old', '+1 year old', '5+ years old', 'dump'];
 
 async function request(path, { method = 'GET', body } = {}) {
-  // POST endpoints (e.g. /api/generate) only read the key from the JSON body,
-  // not the X-API-Key header, so inject it into the body too.
+  // Some endpoints ignore the X-API-Key header (e.g. /api/generate,
+  // /api/botting/check), so send the key everywhere: header, query, and body.
+  const url = new URL(`${BASE_URL}${path}`);
+  url.searchParams.set('apiKey', API_KEY);
+
   const payload = body ? { apiKey: API_KEY, ...body } : undefined;
 
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(url, {
     method,
     headers: {
       'X-API-Key': API_KEY,
