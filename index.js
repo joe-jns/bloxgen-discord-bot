@@ -177,19 +177,46 @@ async function cmdLimits() {
   return { embeds: [embed] };
 }
 
-function cmdHelp() {
+function cmdHelp(message) {
+  const p = PREFIX;
   const embed = new EmbedBuilder()
-    .setTitle('BloxGen bot — commands')
     .setColor(0x5865f2)
+    .setAuthor({ name: 'BloxGen Bot', iconURL: client.user?.displayAvatarURL() })
+    .setTitle('📖 Command Guide')
+    .setDescription(`Generate Roblox accounts and more, right from Discord.\nUse the prefix **\`${p}\`** before each command.`)
     .addFields(
-      { name: `${PREFIX}generate <type>`, value: `Generate an account (${ACCOUNT_TYPES.map((t) => `\`${t}\``).join(', ')})` },
-      { name: `${PREFIX}balance`, value: 'Check your BloxGen balance' },
-      { name: `${PREFIX}followers <id>`, value: 'Check max followers for a Roblox account' },
-      { name: `${PREFIX}stock`, value: 'Show which account types are in stock' },
-      { name: `${PREFIX}prices`, value: 'Show price per account type' },
-      { name: `${PREFIX}limits`, value: 'Show your daily generation limits' },
-      { name: `${PREFIX}settings [dm|server]`, value: 'Where generated accounts are sent (admin only)' },
-    );
+      {
+        name: '🧬 Accounts',
+        value: [
+          `> **\`${p}generate <type>\`** — generate an account`,
+          `> **\`${p}balance\`** — your BloxGen balance`,
+        ].join('\n'),
+      },
+      {
+        name: '📊 Info',
+        value: [
+          `> **\`${p}stock\`** — what's in stock`,
+          `> **\`${p}prices\`** — price per type`,
+          `> **\`${p}limits\`** — your daily limits`,
+        ].join('\n'),
+      },
+      {
+        name: '🤝 Social Growth',
+        value: `> **\`${p}followers <id>\`** — check available followers`,
+      },
+      {
+        name: '⚙️ Config',
+        value: `> **\`${p}settings [dm|server]\`** — where accounts are delivered *(admin)*`,
+      },
+      {
+        name: '​',
+        value: `**Account types:** ${ACCOUNT_TYPES.map((t) => `\`${t}\``).join(' · ')}`,
+      },
+    )
+    .setFooter({ text: 'BloxGen API • docs.bloxgen.net' })
+    .setTimestamp();
+
+  if (client.user) embed.setThumbnail(client.user.displayAvatarURL());
   return { embeds: [embed] };
 }
 
