@@ -10,7 +10,8 @@ You type commands like `+generate alt` and the bot does the rest.
 
 | Command | What it does |
 | --- | --- |
-| `+generate <type>` | Generates a Roblox account and sends it to you |
+| `+generate [type]` | Generates a Roblox account (no type = dropdown menu) |
+| `+panel` | Opens a dropdown menu to pick an account type |
 | `+balance` | Shows how much money is left on the BloxGen account |
 | `+followers <id>` | Checks how many followers can be added to a Roblox account |
 | `+stock` | Shows which account types are currently in stock |
@@ -21,7 +22,15 @@ You type commands like `+generate alt` and the bot does the rest.
 
 **Account types** for `+generate`: `alt`, `+30 days old`, `+1 year old`, `5+ years old`, `dump`.
 
-> 💡 By default, generated accounts are sent to you in **private messages (DM)** so nobody else sees the passwords. An admin can change this with `+settings server` if you want them posted in the channel instead.
+> 💡 By default, generated accounts are sent to you **privately** so nobody else sees the passwords. An admin can change this with `+settings server` if you want them posted in the channel instead.
+
+### 🖱️ Dropdown menu
+
+Type `+panel` (or just `+generate` with no type) and the bot shows a **dropdown menu** to pick an account type. Picking one generates the account and sends it to you privately — with a **🔄 Generate again** button. No need to remember the command syntax.
+
+### 📋 Logging (optional)
+
+If you set `LOG_CHANNEL_ID` in your `.env`, every generation is logged to that channel (who generated it, the type, and the cost). Handy when several people share your balance. Leave it empty to disable.
 
 ---
 

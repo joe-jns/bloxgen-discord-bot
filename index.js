@@ -5,6 +5,11 @@ import {
   GatewayIntentBits,
   EmbedBuilder,
   PermissionFlagsBits,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
 } from 'discord.js';
 import {
   ACCOUNT_TYPES,
@@ -17,7 +22,7 @@ import {
 } from './bloxgen.js';
 import { getDelivery, setDelivery } from './settings.js';
 
-const { DISCORD_TOKEN, BLOXGEN_API_KEY } = process.env;
+const { DISCORD_TOKEN, BLOXGEN_API_KEY, LOG_CHANNEL_ID } = process.env;
 const PREFIX = process.env.PREFIX || '+';
 
 if (!DISCORD_TOKEN || !BLOXGEN_API_KEY) {
@@ -25,23 +30,13 @@ if (!DISCORD_TOKEN || !BLOXGEN_API_KEY) {
   process.exit(1);
 }
 
-// --- Command handlers ---
-// Each handler receives (message, args) and returns a reply (string or { embeds }).
+// --- Shared helpers ---
 
-async function cmdGenerate(message, args) {
-  const type = args.join(' ').trim();
-  if (!type) {
-    return `Usage: \`${PREFIX}generate <type>\` — types: ${ACCOUNT_TYPES.map((t) => `\`${t}\``).join(', ')}`;
-  }
-  if (!ACCOUNT_TYPES.includes(type)) {
-    return `❌ Invalid type. Available: ${ACCOUNT_TYPES.map((t) => `\`${t}\``).join(', ')}`;
-  }
-
-  const acc = await generate(type);
-
+// Build the embed shown for a generated account.
+function buildAccountEmbed(acc) {
   const embed = new EmbedBuilder()
-    .setTitle('Account generated')
-    .setColor(0x5865f2)
+    .setTitle('✅ Account generated')
+    .setColor(0x57f287)
     .addFields(
       { name: 'Username', value: '`' + acc.username + '`', inline: true },
       { name: 'Password', value: '`' + acc.password + '`', inline: true },
@@ -57,22 +52,94 @@ async function cmdGenerate(message, args) {
   if (acc.cookie) {
     embed.addFields({ name: '.ROBLOSECURITY cookie', value: '```\n' + acc.cookie + '\n```' });
   }
+  return embed;
+}
 
-  // Delivery mode is configurable per server via +settings (default: dm).
+// A "Generate again" button that regenerates the same type.
+function generateAgainRow(type) {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`gen-again:${type}`)
+      .setLabel('Generate again')
+      .setEmoji('🔄')
+      .setStyle(ButtonStyle.Secondary),
+  );
+}
+
+// The dropdown panel to pick an account type.
+function buildPanel() {
+  const embed = new EmbedBuilder()
+    .setColor(0x5865f2)
+    .setTitle('🧬 Generate an account')
+    .setDescription('Pick an account type from the menu below.\nYour account will be sent to you privately.');
+
+  const menu = new StringSelectMenuBuilder()
+    .setCustomId('gen-select')
+    .setPlaceholder('Choose an account type…')
+    .addOptions(ACCOUNT_TYPES.map((t) => ({ label: t, value: t })));
+
+  return { embeds: [embed], components: [new ActionRowBuilder().addComponents(menu)] };
+}
+
+// Post a generation event to the log channel (best-effort, never throws).
+async function logGeneration({ user, type, acc, guildId }) {
+  if (!LOG_CHANNEL_ID) return;
+  try {
+    const channel = await client.channels.fetch(LOG_CHANNEL_ID);
+    if (!channel?.isTextBased()) return;
+
+    const embed = new EmbedBuilder()
+      .setColor(0x5865f2)
+      .setTitle('🧬 Account generated')
+      .addFields(
+        { name: 'User', value: `${user} (\`${user.id}\`)`, inline: false },
+        { name: 'Type', value: String(type), inline: true },
+        { name: 'Cost', value: acc.cost != null ? `$${acc.cost}` : 'n/a', inline: true },
+        { name: 'Roblox ID', value: acc.id != null ? String(acc.id) : 'n/a', inline: true },
+      )
+      .setFooter({ text: guildId ? `Server ${guildId}` : 'Direct message' })
+      .setTimestamp();
+    await channel.send({ embeds: [embed] });
+  } catch (err) {
+    console.error('Failed to log generation:', err.message);
+  }
+}
+
+// --- Command handlers ---
+// Each handler receives (message, args) and returns a reply (string or { embeds }).
+
+async function cmdGenerate(message, args) {
+  const type = args.join(' ').trim();
+
+  // No type given -> show the interactive dropdown panel.
+  if (!type) return buildPanel();
+
+  if (!ACCOUNT_TYPES.includes(type)) {
+    return `❌ Invalid type. Available: ${ACCOUNT_TYPES.map((t) => `\`${t}\``).join(', ')}`;
+  }
+
+  const acc = await generate(type);
+  const embed = buildAccountEmbed(acc);
+  await logGeneration({ user: message.author, type, acc, guildId: message.guildId });
+
   const mode = getDelivery(message.guildId);
 
   if (mode === 'server' && message.guild) {
-    await message.channel.send({ embeds: [embed] });
-    return; // posted in channel, no extra reply needed
+    await message.channel.send({ embeds: [embed], components: [generateAgainRow(type)] });
+    return;
   }
 
   // Default: DM the credentials (they are sensitive).
   try {
-    await message.author.send({ embeds: [embed] });
+    await message.author.send({ embeds: [embed], components: [generateAgainRow(type)] });
     return '📩 Account sent to your DMs.';
   } catch {
     return '❌ Could not DM you. Enable DMs from server members, or ask an admin to switch to `+settings server`.';
   }
+}
+
+function cmdPanel() {
+  return buildPanel();
 }
 
 async function cmdSettings(message, args) {
@@ -188,7 +255,8 @@ function cmdHelp(message) {
       {
         name: '🧬 Accounts',
         value: [
-          `> **\`${p}generate <type>\`** — generate an account`,
+          `> **\`${p}generate [type]\`** — generate an account`,
+          `> **\`${p}panel\`** — open the dropdown picker`,
           `> **\`${p}balance\`** — your BloxGen balance`,
         ].join('\n'),
       },
@@ -223,6 +291,7 @@ function cmdHelp(message) {
 const handlers = {
   generate: cmdGenerate,
   gen: cmdGenerate,
+  panel: cmdPanel,
   balance: cmdBalance,
   bal: cmdBalance,
   followers: cmdFollowers,
@@ -275,6 +344,44 @@ client.on('messageCreate', async (message) => {
   } catch (err) {
     // Last-resort guard so a bad message can never crash the bot.
     console.error('messageCreate handler error:', err);
+  }
+});
+
+// Generate from a button/menu interaction and reply privately (ephemeral).
+async function handleGenerateInteraction(interaction, type) {
+  if (!ACCOUNT_TYPES.includes(type)) {
+    await interaction.reply({ content: '❌ Unknown account type.', flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    const acc = await generate(type);
+    const embed = buildAccountEmbed(acc);
+    await logGeneration({ user: interaction.user, type, acc, guildId: interaction.guildId });
+
+    const mode = getDelivery(interaction.guildId);
+    if (mode === 'server' && interaction.guild) {
+      await interaction.channel.send({ embeds: [embed], components: [generateAgainRow(type)] });
+      await interaction.editReply('✅ Account posted in the channel.');
+    } else {
+      await interaction.editReply({ embeds: [embed], components: [generateAgainRow(type)] });
+    }
+  } catch (err) {
+    console.error('Interaction generate failed:', err);
+    await interaction.editReply(`❌ ${err.message || 'Something went wrong.'}`);
+  }
+}
+
+client.on('interactionCreate', async (interaction) => {
+  try {
+    if (interaction.isStringSelectMenu() && interaction.customId === 'gen-select') {
+      await handleGenerateInteraction(interaction, interaction.values[0]);
+    } else if (interaction.isButton() && interaction.customId.startsWith('gen-again:')) {
+      await handleGenerateInteraction(interaction, interaction.customId.slice('gen-again:'.length));
+    }
+  } catch (err) {
+    console.error('interactionCreate handler error:', err);
   }
 });
 
