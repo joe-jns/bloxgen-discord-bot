@@ -26,6 +26,10 @@ You type commands like `+generate alt` and the bot does the rest.
 
 > 💡 By default, generated accounts are sent to you **privately** so nobody else sees the passwords. An admin can change this with `+settings server` if you want them posted in the channel instead.
 
+### 🎙️ Voice chat status
+
+When an account is generated, the bot uses the account's own cookie to query the official Roblox voice settings API and shows whether **voice chat** is enabled/verified for it. If the lookup fails, the field is simply omitted.
+
 ### 🖱️ Dropdown menu
 
 Type `+panel` (or just `+generate` with no type) and the bot shows a **dropdown menu** to pick an account type. Picking one generates the account and sends it to your **DMs** — with a **🔄 Generate again** button. No need to remember the command syntax.

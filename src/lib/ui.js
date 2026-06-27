@@ -9,8 +9,9 @@ import {
 import { ACCOUNT_TYPES } from '../bloxgen.js';
 import { COLORS } from '../config.js';
 
-// Embed shown for a generated account.
-export function buildAccountEmbed(acc) {
+// Embed shown for a generated account. `voice` (optional) comes from the Roblox
+// voice settings API: { enabled, verified } or null if the lookup failed.
+export function buildAccountEmbed(acc, voice) {
   const embed = new EmbedBuilder()
     .setTitle('✅ Account generated')
     .setColor(COLORS.success)
@@ -26,6 +27,13 @@ export function buildAccountEmbed(acc) {
   if (acc.robux != null) embed.addFields({ name: 'Robux', value: String(acc.robux), inline: true });
   if (acc.rap != null) embed.addFields({ name: 'RAP', value: String(acc.rap), inline: true });
   if (acc.avatarUrl) embed.setThumbnail(acc.avatarUrl);
+  if (voice) {
+    embed.addFields({
+      name: '🎙️ Voice chat',
+      value: `${voice.enabled ? '🟢 Enabled' : '🔴 Disabled'}${voice.verified ? ' · verified' : ''}`,
+      inline: true,
+    });
+  }
   if (acc.cookie) {
     embed.addFields({ name: '.ROBLOSECURITY cookie', value: '```\n' + acc.cookie + '\n```' });
   }
