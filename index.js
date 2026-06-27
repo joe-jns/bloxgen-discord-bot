@@ -220,21 +220,50 @@ client.once('clientReady', (c) => {
   console.log(`Logged in as ${c.user.tag} — prefix "${PREFIX}"`);
 });
 
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  if (!message.content.startsWith(PREFIX)) return;
-
-  const [name, ...args] = message.content.slice(PREFIX.length).trim().split(/\s+/);
-  const handler = handlers[name.toLowerCase()];
-  if (!handler) return;
-
+// Reply without ever throwing (e.g. missing permissions, deleted message).
+async function safeReply(message, content) {
   try {
-    const reply = await handler(message, args);
-    if (reply) await message.reply(reply);
+    await message.reply(content);
   } catch (err) {
-    console.error(`${PREFIX}${name} failed:`, err);
-    await message.reply(`❌ ${err.message}`);
+    console.error('Failed to send reply:', err.message);
+  }
+}
+
+client.on('messageCreate', async (message) => {
+  try {
+    if (message.author.bot) return;
+    if (!message.content.startsWith(PREFIX)) return;
+
+    const [name, ...args] = message.content.slice(PREFIX.length).trim().split(/\s+/);
+    const handler = handlers[name.toLowerCase()];
+    if (!handler) return;
+
+    try {
+      const reply = await handler(message, args);
+      if (reply) await safeReply(message, reply);
+    } catch (err) {
+      console.error(`${PREFIX}${name} failed:`, err);
+      await safeReply(message, `❌ ${err.message || 'Something went wrong.'}`);
+    }
+  } catch (err) {
+    // Last-resort guard so a bad message can never crash the bot.
+    console.error('messageCreate handler error:', err);
   }
 });
 
-await client.login(DISCORD_TOKEN);
+// Discord.js connection-level errors (don't crash, just log).
+client.on('error', (err) => console.error('Client error:', err));
+client.on('shardError', (err) => console.error('Shard error:', err));
+
+// Global safety net: log unexpected errors instead of crashing the process.
+process.on('unhandledRejection', (reason) => console.error('Unhandled rejection:', reason));
+process.on('uncaughtException', (err) => console.error('Uncaught exception:', err));
+
+try {
+  await client.login(DISCORD_TOKEN);
+} catch (err) {
+  console.error('Failed to log in. Check your DISCORD_TOKEN in .env.');
+  console.error(err.message);
+  await client.destroy().catch(() => {});
+  process.exitCode = 1;
+}
