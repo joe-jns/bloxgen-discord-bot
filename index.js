@@ -20,7 +20,7 @@ import {
   getPrices,
   getDailyLimit,
 } from './bloxgen.js';
-import { getDelivery, setDelivery } from './settings.js';
+import { getDelivery, setDelivery, getLogChannel, setLogChannel } from './settings.js';
 
 const { DISCORD_TOKEN, BLOXGEN_API_KEY, LOG_CHANNEL_ID } = process.env;
 const PREFIX = process.env.PREFIX || '+';
@@ -82,10 +82,12 @@ function buildPanel() {
 }
 
 // Post a generation event to the log channel (best-effort, never throws).
+// Per-server setting (+logs) takes priority over the LOG_CHANNEL_ID env fallback.
 async function logGeneration({ user, type, acc, guildId }) {
-  if (!LOG_CHANNEL_ID) return;
+  const channelId = getLogChannel(guildId) || LOG_CHANNEL_ID;
+  if (!channelId) return;
   try {
-    const channel = await client.channels.fetch(LOG_CHANNEL_ID);
+    const channel = await client.channels.fetch(channelId);
     if (!channel?.isTextBased()) return;
 
     const embed = new EmbedBuilder()
@@ -171,6 +173,47 @@ async function cmdSettings(message, args) {
     return '✅ Generated accounts will now be **posted in the channel**.\n⚠️ Anyone who can read the channel will see the credentials and cookie.';
   }
   return '✅ Generated accounts will now be **sent privately via DM**.';
+}
+
+async function cmdLogs(message, args) {
+  if (!message.guild) {
+    return 'This command can only be used in a server.';
+  }
+  if (!message.member?.permissions.has(PermissionFlagsBits.ManageGuild)) {
+    return '❌ You need the **Manage Server** permission to change this.';
+  }
+
+  const arg = (args[0] || '').toLowerCase();
+
+  // No argument -> show the current log channel.
+  if (!arg) {
+    const current = getLogChannel(message.guildId);
+    if (current) return `Generations are logged to <#${current}>.\nUse \`${PREFIX}logs here\`, \`${PREFIX}logs #channel\` or \`${PREFIX}logs off\`.`;
+    return `No log channel set. Use \`${PREFIX}logs here\` or \`${PREFIX}logs #channel\` to enable logging.`;
+  }
+
+  // Disable logging.
+  if (['off', 'disable', 'none', 'stop'].includes(arg)) {
+    setLogChannel(message.guildId, null);
+    return '✅ Logging disabled.';
+  }
+
+  // Resolve the target channel: #mention, "here", or a raw ID.
+  let channel = message.mentions.channels.first();
+  if (!channel && arg === 'here') channel = message.channel;
+  if (!channel && /^\d+$/.test(arg)) {
+    channel = message.guild.channels.cache.get(arg);
+  }
+
+  if (!channel) {
+    return `❌ Couldn't find that channel. Use \`${PREFIX}logs here\`, \`${PREFIX}logs #channel\`, an ID, or \`${PREFIX}logs off\`.`;
+  }
+  if (!channel.isTextBased()) {
+    return '❌ That channel is not a text channel.';
+  }
+
+  setLogChannel(message.guildId, channel.id);
+  return `✅ Generations will now be logged to <#${channel.id}>.`;
 }
 
 async function cmdBalance(message) {
@@ -274,7 +317,10 @@ function cmdHelp(message) {
       },
       {
         name: '⚙️ Config',
-        value: `> **\`${p}settings [dm|server]\`** — where accounts are delivered *(admin)*`,
+        value: [
+          `> **\`${p}settings [dm|server]\`** — where accounts are delivered *(admin)*`,
+          `> **\`${p}logs [here|#channel|off]\`** — log generations *(admin)*`,
+        ].join('\n'),
       },
       {
         name: '​',
@@ -299,6 +345,7 @@ const handlers = {
   prices: cmdPrices,
   limits: cmdLimits,
   settings: cmdSettings,
+  logs: cmdLogs,
   help: cmdHelp,
 };
 

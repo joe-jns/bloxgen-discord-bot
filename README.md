@@ -18,6 +18,7 @@ You type commands like `+generate alt` and the bot does the rest.
 | `+prices` | Shows the price of each account type |
 | `+limits` | Shows your daily generation limits |
 | `+settings` | Choose where accounts are sent: your DMs or the channel (admins only) |
+| `+logs` | Set/clear the channel where generations are logged (admins only) |
 | `+help` | Shows the list of commands |
 
 **Account types** for `+generate`: `alt`, `+30 days old`, `+1 year old`, `5+ years old`, `dump`.
@@ -30,7 +31,14 @@ Type `+panel` (or just `+generate` with no type) and the bot shows a **dropdown 
 
 ### 📋 Logging (optional)
 
-If you set `LOG_CHANNEL_ID` in your `.env`, every generation is logged to that channel (who generated it, the type, and the cost). Handy when several people share your balance. Leave it empty to disable.
+Log every generation (who generated it, the type, and the cost) to a channel — handy when several people share your balance. An admin sets it up right in Discord:
+
+- `+logs here` — log to the current channel
+- `+logs #channel` — log to a specific channel
+- `+logs` — show the current log channel
+- `+logs off` — disable logging
+
+You can also set a default `LOG_CHANNEL_ID` in `.env`, but the `+logs` command takes priority.
 
 ---
 

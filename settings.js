@@ -28,3 +28,16 @@ export function setDelivery(guildId, delivery) {
   data[guildId] = { ...data[guildId], delivery };
   writeAll(data);
 }
+
+// Channel ID where generations are logged for this server (null = none set).
+export function getLogChannel(guildId) {
+  if (!guildId) return null;
+  return readAll()[guildId]?.logChannel ?? null;
+}
+
+// Pass null/undefined to clear the configured log channel.
+export function setLogChannel(guildId, channelId) {
+  const data = readAll();
+  data[guildId] = { ...data[guildId], logChannel: channelId ?? null };
+  writeAll(data);
+}
