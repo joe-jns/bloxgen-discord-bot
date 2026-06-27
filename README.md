@@ -13,6 +13,9 @@ You type commands like `+generate alt` and the bot does the rest.
 | `+generate <type>` | Generates a Roblox account and sends it to you |
 | `+balance` | Shows how much money is left on the BloxGen account |
 | `+followers <id>` | Checks how many followers can be added to a Roblox account |
+| `+stock` | Shows which account types are currently in stock |
+| `+prices` | Shows the price of each account type |
+| `+limits` | Shows your daily generation limits |
 | `+settings` | Choose where accounts are sent: your DMs or the channel (admins only) |
 | `+help` | Shows the list of commands |
 

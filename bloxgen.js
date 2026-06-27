@@ -51,3 +51,18 @@ export function getBalance() {
 export function checkFollowers(userid) {
   return request(`/api/botting/check?userid=${encodeURIComponent(userid)}`);
 }
+
+// GET /api/stock -> { "<type>": true|false, ... } (in stock per type)
+export function getStock() {
+  return request('/api/stock');
+}
+
+// GET /api/prices -> { "<type>": number, ... } (price per type)
+export function getPrices() {
+  return request('/api/prices');
+}
+
+// GET /api/daily-limit -> { generationsToday, remainingGenerations, dailyLimit, resetTime, accountTypes[] }
+export function getDailyLimit() {
+  return request('/api/daily-limit');
+}

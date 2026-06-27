@@ -6,7 +6,15 @@ import {
   EmbedBuilder,
   PermissionFlagsBits,
 } from 'discord.js';
-import { ACCOUNT_TYPES, generate, getBalance, checkFollowers } from './bloxgen.js';
+import {
+  ACCOUNT_TYPES,
+  generate,
+  getBalance,
+  checkFollowers,
+  getStock,
+  getPrices,
+  getDailyLimit,
+} from './bloxgen.js';
 import { getDelivery, setDelivery } from './settings.js';
 
 const { DISCORD_TOKEN, BLOXGEN_API_KEY } = process.env;
@@ -126,6 +134,49 @@ async function cmdFollowers(message, args) {
   return { embeds: [embed] };
 }
 
+async function cmdStock() {
+  const data = await getStock();
+  const lines = Object.entries(data).map(
+    ([type, inStock]) => `${inStock ? '🟢' : '🔴'} \`${type}\` — ${inStock ? 'in stock' : 'out of stock'}`,
+  );
+  const embed = new EmbedBuilder()
+    .setTitle('Account stock')
+    .setColor(0x5865f2)
+    .setDescription(lines.join('\n') || 'No stock info available.');
+  return { embeds: [embed] };
+}
+
+async function cmdPrices() {
+  const data = await getPrices();
+  const lines = Object.entries(data).map(([type, price]) => `\`${type}\` — $${price}`);
+  const embed = new EmbedBuilder()
+    .setTitle('Account prices')
+    .setColor(0x5865f2)
+    .setDescription(lines.join('\n') || 'No price info available.');
+  return { embeds: [embed] };
+}
+
+async function cmdLimits() {
+  const data = await getDailyLimit();
+  const embed = new EmbedBuilder()
+    .setTitle('Daily generation limits')
+    .setColor(0x5865f2)
+    .setDescription(
+      `Total today: **${data.generationsToday}/${data.dailyLimit}** ` +
+        `(**${data.remainingGenerations}** left)`,
+    );
+
+  for (const t of data.accountTypes ?? []) {
+    embed.addFields({
+      name: `${t.canGenerate ? '🟢' : '🔴'} ${t.accountType}`,
+      value: `${t.generationsToday}/${t.dailyLimit} used`,
+      inline: true,
+    });
+  }
+  if (data.resetTime) embed.setFooter({ text: `Resets at ${data.resetTime}` });
+  return { embeds: [embed] };
+}
+
 function cmdHelp() {
   const embed = new EmbedBuilder()
     .setTitle('BloxGen bot — commands')
@@ -134,6 +185,9 @@ function cmdHelp() {
       { name: `${PREFIX}generate <type>`, value: `Generate an account (${ACCOUNT_TYPES.map((t) => `\`${t}\``).join(', ')})` },
       { name: `${PREFIX}balance`, value: 'Check your BloxGen balance' },
       { name: `${PREFIX}followers <id>`, value: 'Check max followers for a Roblox account' },
+      { name: `${PREFIX}stock`, value: 'Show which account types are in stock' },
+      { name: `${PREFIX}prices`, value: 'Show price per account type' },
+      { name: `${PREFIX}limits`, value: 'Show your daily generation limits' },
       { name: `${PREFIX}settings [dm|server]`, value: 'Where generated accounts are sent (admin only)' },
     );
   return { embeds: [embed] };
@@ -145,6 +199,9 @@ const handlers = {
   balance: cmdBalance,
   bal: cmdBalance,
   followers: cmdFollowers,
+  stock: cmdStock,
+  prices: cmdPrices,
+  limits: cmdLimits,
   settings: cmdSettings,
   help: cmdHelp,
 };
