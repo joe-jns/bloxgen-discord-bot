@@ -147,11 +147,25 @@ A server admin (someone with **Manage Server** permission) can change this:
 
 ## 🛠️ For developers
 
-- Node.js 18+ (uses built-in `fetch`), [discord.js](https://discord.js.org) v14.
-- `index.js` — bot + command handlers
-- `bloxgen.js` — BloxGen API client
-- `settings.js` — per-server delivery setting (`settings.json`)
-- `loadenv.js` — loads `.env` regardless of working directory
+Node.js 18+ (uses built-in `fetch`), [discord.js](https://discord.js.org) v14.
+
+```
+src/
+├── index.js              entry point (client, login, error handlers)
+├── config.js             loads .env (cwd-independent) + constants
+├── bloxgen.js            BloxGen API client
+├── lib/
+│   ├── settings.js       per-server settings store (settings.json)
+│   ├── ui.js             embeds & components (panel, buttons)
+│   ├── logger.js         logs generations to a channel
+│   └── generation.js     shared generate → embed → log logic
+├── commands/             one file per command (+ index.js registry)
+└── events/               messageCreate & interactionCreate handlers
+```
+
+**Adding a command:** drop a file in `src/commands/` exporting
+`{ name, aliases?, execute({ message, args, client }) }` and register it in
+`src/commands/index.js`.
 
 ```bash
 npm install

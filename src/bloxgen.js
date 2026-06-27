@@ -1,8 +1,7 @@
 // Small client for the BloxGen API (https://docs.bloxgen.net)
-import './loadenv.js';
+import { BLOXGEN_API_KEY } from './config.js';
 
 const BASE_URL = 'https://core.bloxgen.net';
-const API_KEY = process.env.BLOXGEN_API_KEY;
 
 // The 5 account types supported by /api/generate
 export const ACCOUNT_TYPES = ['alt', '+30 days old', '+1 year old', '5+ years old', 'dump'];
@@ -11,14 +10,14 @@ async function request(path, { method = 'GET', body } = {}) {
   // Some endpoints ignore the X-API-Key header (e.g. /api/generate,
   // /api/botting/check), so send the key everywhere: header, query, and body.
   const url = new URL(`${BASE_URL}${path}`);
-  url.searchParams.set('apiKey', API_KEY);
+  url.searchParams.set('apiKey', BLOXGEN_API_KEY);
 
-  const payload = body ? { apiKey: API_KEY, ...body } : undefined;
+  const payload = body ? { apiKey: BLOXGEN_API_KEY, ...body } : undefined;
 
   const res = await fetch(url, {
     method,
     headers: {
-      'X-API-Key': API_KEY,
+      'X-API-Key': BLOXGEN_API_KEY,
       ...(payload ? { 'Content-Type': 'application/json' } : {}),
     },
     body: payload ? JSON.stringify(payload) : undefined,
