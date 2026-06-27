@@ -17,6 +17,7 @@ You type commands like `+generate alt` and the bot does the rest.
 | `+stock` | Shows which account types are currently in stock |
 | `+prices` | Shows the price of each account type |
 | `+limits` | Shows your daily generation limits |
+| `+status` | Shows API & Social Growth health and your balance |
 | `+settings` | Choose where accounts are sent: your DMs or the channel (admins only) |
 | `+logs` | Set/clear the channel where generations are logged (admins only) |
 | `+help` | Shows the list of commands |

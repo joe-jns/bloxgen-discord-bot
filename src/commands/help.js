@@ -26,6 +26,7 @@ export default {
             `> **\`${p}stock\`** — what's in stock`,
             `> **\`${p}prices\`** — price per type`,
             `> **\`${p}limits\`** — your daily limits`,
+            `> **\`${p}status\`** — API & service health`,
           ].join('\n'),
         },
         {

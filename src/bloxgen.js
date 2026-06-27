@@ -65,3 +65,19 @@ export function getPrices() {
 export function getDailyLimit() {
   return request('/api/daily-limit');
 }
+
+// GET /api/botting/status -> { bottingServer: { available, status }, service }
+export function getBottingStatus() {
+  return request('/api/botting/status');
+}
+
+// GET /health -> { status: "ok" } (no auth, no success/data envelope)
+export async function getHealth() {
+  try {
+    const res = await fetch(`${BASE_URL}/health`);
+    const json = await res.json();
+    return { ok: res.ok && json.status === 'ok' };
+  } catch {
+    return { ok: false };
+  }
+}
