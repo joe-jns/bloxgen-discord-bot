@@ -26,7 +26,7 @@ You type commands like `+generate alt` and the bot does the rest.
 
 ### 🖱️ Dropdown menu
 
-Type `+panel` (or just `+generate` with no type) and the bot shows a **dropdown menu** to pick an account type. Picking one generates the account and sends it to you privately — with a **🔄 Generate again** button. No need to remember the command syntax.
+Type `+panel` (or just `+generate` with no type) and the bot shows a **dropdown menu** to pick an account type. Picking one generates the account and sends it to your **DMs** — with a **🔄 Generate again** button. No need to remember the command syntax.
 
 ### 📋 Logging (optional)
 

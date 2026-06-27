@@ -71,7 +71,7 @@ function buildPanel() {
   const embed = new EmbedBuilder()
     .setColor(0x5865f2)
     .setTitle('🧬 Generate an account')
-    .setDescription('Pick an account type from the menu below.\nYour account will be sent to you privately.');
+    .setDescription('Pick an account type from the menu below.\nYour account will be sent to your DMs.');
 
   const menu = new StringSelectMenuBuilder()
     .setCustomId('gen-select')
@@ -354,18 +354,29 @@ async function handleGenerateInteraction(interaction, type) {
     return;
   }
 
+  // The ephemeral reply is only a transient acknowledgement — the account
+  // itself is sent to DMs (or the channel) so it can't be lost when dismissed.
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   try {
     const acc = await generate(type);
     const embed = buildAccountEmbed(acc);
     await logGeneration({ user: interaction.user, type, acc, guildId: interaction.guildId });
 
+    const payload = { embeds: [embed], components: [generateAgainRow(type)] };
     const mode = getDelivery(interaction.guildId);
+
     if (mode === 'server' && interaction.guild) {
-      await interaction.channel.send({ embeds: [embed], components: [generateAgainRow(type)] });
+      await interaction.channel.send(payload);
       await interaction.editReply('✅ Account posted in the channel.');
-    } else {
-      await interaction.editReply({ embeds: [embed], components: [generateAgainRow(type)] });
+      return;
+    }
+
+    // Default: DM the account (persistent, unlike an ephemeral message).
+    try {
+      await interaction.user.send(payload);
+      await interaction.editReply('📩 Account sent to your DMs.');
+    } catch {
+      await interaction.editReply('❌ Could not DM you. Enable DMs from server members and try again.');
     }
   } catch (err) {
     console.error('Interaction generate failed:', err);
