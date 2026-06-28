@@ -18,6 +18,8 @@ export default {
             `> **\`${p}generate [type]\`** — generate an account`,
             `> **\`${p}panel\`** — open the dropdown picker`,
             `> **\`${p}balance\`** — your BloxGen balance`,
+            `> **\`${p}history [page]\`** — list your generated accounts`,
+            `> **\`${p}history <username>\`** — DM that account's login · **\`${p}history dump\`** — DM all (user:pass:cookie)`,
           ].join('\n'),
         },
         {

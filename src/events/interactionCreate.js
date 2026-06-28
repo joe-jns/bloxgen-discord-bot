@@ -2,6 +2,7 @@ import { MessageFlags } from 'discord.js';
 import { ACCOUNT_TYPES } from '../bloxgen.js';
 import { generateAccount } from '../lib/generation.js';
 import { getDelivery } from '../lib/settings.js';
+import { buildHistoryPage } from '../commands/history.js';
 
 // Generate from a button/menu interaction. The account is sent to DMs (or the
 // channel) so it persists; the interaction reply is just an ephemeral receipt.
@@ -46,6 +47,14 @@ export async function execute(interaction) {
       await handleGenerateInteraction(interaction, interaction.values[0]);
     } else if (interaction.isButton() && interaction.customId.startsWith('gen-again:')) {
       await handleGenerateInteraction(interaction, interaction.customId.slice('gen-again:'.length));
+    } else if (interaction.isButton() && interaction.customId.startsWith('hist:')) {
+      const page = Math.max(1, parseInt(interaction.customId.slice('hist:'.length), 10) || 1);
+      try {
+        const payload = await buildHistoryPage(page);
+        await interaction.update(payload);
+      } catch (err) {
+        await interaction.reply({ content: `❌ ${err.message || 'Something went wrong.'}`, flags: MessageFlags.Ephemeral });
+      }
     }
   } catch (err) {
     console.error('interactionCreate handler error:', err);

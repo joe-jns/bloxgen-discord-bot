@@ -9,9 +9,10 @@ import limits from './limits.js';
 import status from './status.js';
 import settings from './settings.js';
 import logs from './logs.js';
+import history from './history.js';
 import help from './help.js';
 
-const list = [generate, panel, balance, followers, stock, prices, limits, status, settings, logs, help];
+const list = [generate, panel, balance, followers, stock, prices, limits, status, settings, logs, history, help];
 
 export const commands = new Map();
 for (const command of list) {

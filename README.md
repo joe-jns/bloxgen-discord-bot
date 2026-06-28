@@ -13,6 +13,9 @@ You type commands like `+generate alt` and the bot does the rest.
 | `+generate [type]` | Generates a Roblox account (no type = dropdown menu) |
 | `+panel` | Opens a dropdown menu to pick an account type |
 | `+balance` | Shows how much money is left on the BloxGen account |
+| `+history [page]` | Lists your generated accounts (Prev/Next buttons to page) |
+| `+history <username>` | DMs that account's full login (same embed as a generation) |
+| `+history dump` | DMs **all** accounts as a `user:pass:cookie` .txt file |
 | `+followers <id>` | Checks how many followers can be added to a Roblox account |
 | `+stock` | Shows which account types are currently in stock |
 | `+prices` | Shows the price of each account type |
@@ -93,7 +96,15 @@ The bot needs a free program called **Node.js** to run.
    DISCORD_TOKEN=paste-your-discord-token-here
    BLOXGEN_API_KEY=BLOX-your-key-here
    ```
-4. Save the file.
+4. *(Optional — only for `+history`)* The official API has no history endpoint, so
+   `+history` uses your dashboard session cookie. On <https://bloxgen.net> (logged in),
+   press **F12 → Application → Cookies → https://bloxgen.net**, copy the value of the
+   **`accessToken`** cookie, and add it:
+   ```
+   BLOXGEN_SESSION_COOKIE=paste-the-accessToken-value
+   ```
+   This cookie lasts about 7 days, so you'll re-paste it now and then.
+5. Save the file.
 
 ### Step 7 — Start the bot
 
