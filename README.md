@@ -4,6 +4,10 @@ A simple Discord bot that lets you generate Roblox accounts through the [BloxGen
 
 You type commands like `+generate alt` and the bot does the rest.
 
+> **Companion tools** (Chrome extensions for the Bloxgen dashboard):
+> [Bloxgen Voice Checker](https://github.com/joe-jns/bloxgen-voice-checker) — check if voice chat is enabled (+ age group) ·
+> [Bloxgen Account Claimer](https://github.com/joe-jns/bloxgen-account-claimer) — claim accounts by changing their password.
+
 ---
 
 ## ✨ What it can do
